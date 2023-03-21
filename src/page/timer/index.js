@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import {} from "./style.css";
-import { db } from "../../firebase";
-import { onValue, ref } from "firebase/database";
+// import { db } from "../../firebase";
+// import { onValue, ref } from "firebase/database";
 import { useNavigate } from "react-router-dom";
 class Timer extends Component {
 	state = {

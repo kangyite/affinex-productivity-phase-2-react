@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-import { auth } from "../firebase";
+import { auth } from "../../firebase";
 import { NavLink, useNavigate } from "react-router-dom";
 
 class Login extends Component {

@@ -217,7 +217,6 @@ const Timer = () => {
 					0830-1300,1400-1530,1540-1800
 				</p>
 				<p>means working from 8.30am-1.00pm, 2.00pm-3.30pm, 3.40pm-6.00pm</p>
-				<i class="fa-solid fa-user"></i>
 			</div>
 		</div>
 	);

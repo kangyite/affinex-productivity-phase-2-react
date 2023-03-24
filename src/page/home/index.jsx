@@ -33,7 +33,7 @@ const Home = () => {
 							key={timer.id}
 							onClick={(e) => navigate("/timer/TIMER_" + timer.id)}
 						>
-							<h4>{timer.name ? timer.name : `${timer.id} (ID)`}</h4>
+							<h4>TIMER_{timer.id}</h4>
 							<div className="data_container">
 								<div className="data_box">
 									<div className="numerical_data">Plan: {timer.plan}</div>

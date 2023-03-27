@@ -4,7 +4,7 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 let db = admin.database();
 exports.scheduledDeleteLoggedData = functions.pubsub
-	.schedule("every 1 day")
+	.schedule("every day 00:00")
 	.onRun(async (context) => {
 		let ref = db.ref("devices");
 		ref.on(

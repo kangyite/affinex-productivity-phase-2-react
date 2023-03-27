@@ -7,7 +7,9 @@
 
 # testing
 /coverage
-
+ui-debug.log
+pubsub-debug.log
+database-debug.log
 # production
 /build
 

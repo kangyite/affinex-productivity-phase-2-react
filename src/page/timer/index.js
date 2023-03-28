@@ -18,6 +18,7 @@ const Timer = () => {
 	const [openSnack, setOpenSnack] = React.useState(false);
 	const [timerData, setTimerData] = useState({
 		actual: 0,
+		timer_set: 0,
 		enable_ot: false,
 		name: "",
 		online: false,
@@ -89,6 +90,24 @@ const Timer = () => {
 		<div className="page">
 			<div className={"page_title_container"}>
 				<h1>TIMER_{timerData.id} </h1>
+				<div className="data_title_container">
+					<h4>Timer Set: </h4>
+					<Editable
+						text={timerData.timer_set}
+						placeholder="Write a value"
+						childRef={inputRef}
+						type="input"
+					>
+						<input
+							ref={inputRef}
+							type="number"
+							name="timer_set"
+							placeholder="Write a value"
+							value={timerData.timer_set}
+							onChange={changeHandler}
+						/>
+					</Editable>
+				</div>
 				<div className="data_title_container">
 					<h4>Plan: </h4>
 					<Editable

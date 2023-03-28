@@ -23,7 +23,6 @@ class Login extends Component {
 		)
 			.then((userCredential) => {
 				// Signed in
-				const user = userCredential.user;
 				this.props.navigate("/");
 			})
 			.catch((error) => {

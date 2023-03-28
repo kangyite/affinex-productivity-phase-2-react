@@ -66,8 +66,9 @@ const Timer = () => {
 	useEffect(() => {
 		const path = window.location.pathname;
 		const timerId = path.substring(path.lastIndexOf("/") + 1, path.length);
-		console.log(timerId);
-		console.log(timerData);
+
+		document.title = timerId;
+
 		const query = ref(db, `devices/${timerId}`);
 		console.log(`devices/${timerId}`);
 		onValue(query, (snapshot) => {

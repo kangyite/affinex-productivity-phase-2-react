@@ -7,6 +7,7 @@ const Home = () => {
 	const navigate = useNavigate();
 	const [timerData, setTimerData] = useState([]);
 	useEffect(() => {
+		document.title = "Home";
 		const query = ref(db, "devices");
 		onValue(query, (snapshot) => {
 			if (snapshot.exists()) {

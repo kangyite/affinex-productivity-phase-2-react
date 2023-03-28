@@ -27,6 +27,7 @@ function Data() {
 	};
 	const [timerIds, setTimerIds] = useState([]);
 	useEffect(() => {
+		document.title = "Data Explorer";
 		const query = ref(db, `devices`);
 		onValue(query, (snapshot) => {
 			if (snapshot.exists()) {

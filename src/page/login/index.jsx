@@ -11,11 +11,11 @@ class Login extends Component {
 			password: "",
 		},
 	};
-
+	componentDidMount() {
+		document.title = "Login";
+	}
 	onLogin = (e) => {
 		e.preventDefault();
-		console.log(this.state.form.email);
-		console.log(this.state.form.password);
 		signInWithEmailAndPassword(
 			auth,
 			this.state.form.email,
@@ -25,7 +25,6 @@ class Login extends Component {
 				// Signed in
 				const user = userCredential.user;
 				this.props.navigate("/");
-				console.log(user);
 			})
 			.catch((error) => {
 				const errorCode = error.code;
@@ -50,7 +49,7 @@ class Login extends Component {
 				<main>
 					<section>
 						<div>
-							<p> FocusApp </p>
+							<p> Login </p>
 
 							<form>
 								<div>

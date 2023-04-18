@@ -7,8 +7,12 @@ import Editable from "../../components/Editable";
 import Button from "@mui/material/Button";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
-
 import Switch from "@mui/material/Switch";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 let changed = false;
 const Alert = React.forwardRef(function Alert(props, ref) {
 	return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -27,7 +31,26 @@ const Timer = () => {
 		target: 0,
 		working_time: "",
 	});
+	const [editName, setEditName] = React.useState(false);
+	const nameRef = useRef("");
+	const handleClickEditName = () => {
+		setEditName(true);
+	};
 
+	const handleClose = () => {
+		setEditName(false);
+	};
+	const handleSubmitName = () => {
+		setTimerData({ ...timerData, name: nameRef.current.value });
+
+		setEditName(false);
+	};
+	useEffect(() => {
+		set(ref(db, `devices/TIMER_${timerData.id}/data`), {
+			...timerData,
+		});
+		// eslint-disable-next-line
+	}, [timerData.name]);
 	const handleOTChange = (e) => {
 		setTimerData({
 			...timerData,
@@ -89,7 +112,30 @@ const Timer = () => {
 	return (
 		<div className="page">
 			<div className={"page_title_container"}>
-				<h1>TIMER_{timerData.id} </h1>
+				<h1>{timerData.name ? timerData.name : `TIMER_${timerData.id}`}</h1>
+				<div className="subtext">TIMER_{timerData.id}</div>
+				<Button variant="outlined" onClick={handleClickEditName}>
+					Edit Name
+				</Button>
+				<Dialog open={editName} onClose={handleClose}>
+					<DialogTitle>Change Name</DialogTitle>
+					<DialogContent>
+						<TextField
+							autoFocus
+							margin="dense"
+							id="name"
+							label="Name"
+							type="text"
+							fullWidth
+							variant="standard"
+							inputRef={nameRef}
+						/>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={handleClose}>Cancel</Button>
+						<Button onClick={handleSubmitName}>Submit</Button>
+					</DialogActions>
+				</Dialog>
 				<div className="data_title_container">
 					<h4>Timer Set: </h4>
 					<Editable

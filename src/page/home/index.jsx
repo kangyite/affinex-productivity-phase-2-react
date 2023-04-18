@@ -34,7 +34,7 @@ const Home = () => {
 							key={timer.id}
 							onClick={(e) => navigate("/timer/TIMER_" + timer.id)}
 						>
-							<h4>TIMER_{timer.id}</h4>
+							<h4>{timer.name ? timer.name : `TIMER_${timer.id}`}</h4>
 							<div className="data_container">
 								<div className="data_box">
 									<div className="numerical_data">Plan: {timer.plan}</div>
@@ -42,6 +42,7 @@ const Home = () => {
 									<div className="numerical_data">Actual: {timer.actual}</div>
 								</div>
 							</div>
+							<div className="firmware_text">SN: TIMER_{timer.id}</div>
 						</div>
 					);
 				})}

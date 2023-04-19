@@ -17,6 +17,7 @@ const Home = () => {
 					timerData.push({ sid: sid, ...snapshotData[sid].data });
 				}
 				setTimerData(timerData);
+				console.log(timerData);
 			}
 		});
 	}, []);

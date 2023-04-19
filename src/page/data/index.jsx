@@ -21,11 +21,27 @@ function Data() {
 	const [csvData, setcsvData] = useState([]);
 	const [date, setDate] = useState([]);
 	const [timerId, setTimerId] = React.useState("");
+	const [dateList, setDateList] = useState([]);
 
 	const handleChange = (event) => {
 		setTimerId(event.target.value);
 	};
 	const [timerIds, setTimerIds] = useState([]);
+	const isNotAvailable = (date) => {
+		const day = String(date.$D);
+		const month = String(date.$M + 1);
+		const year = String(date.$y);
+
+		for (let i in dateList) {
+			if (
+				dateList[i][0] === day &&
+				dateList[i][1] === month &&
+				dateList[i][2] === year
+			)
+				return false;
+		}
+		return true;
+	};
 	useEffect(() => {
 		document.title = "Data Explorer";
 		const query = ref(db, `devices`);
@@ -41,6 +57,20 @@ function Data() {
 		// eslint-disable-next-line
 	}, []);
 	useEffect(() => {
+		if (timerId === "") return;
+		const q = ref(db, `devices/${timerId}/data_logger/`);
+		onValue(q, (snapshot) => {
+			if (snapshot.exists()) {
+				const snapshotData = snapshot.val();
+				var tempDate = [];
+				for (let d in snapshotData) {
+					tempDate.push(d.split("-"));
+					console.log(123);
+				}
+				setDateList(tempDate);
+			}
+		});
+		if (date === []) return;
 		let dateS = `${date.$D}-${date.$M + 1}-${date.$y}`;
 		const query = ref(db, `devices/${timerId}/data_logger/${dateS}`);
 		onValue(query, (snapshot) => {
@@ -91,6 +121,7 @@ function Data() {
 					>
 						<DatePicker
 							value={date}
+							shouldDisableDate={isNotAvailable}
 							onChange={(newValue) => setDate(newValue)}
 						/>
 					</LocalizationProvider>

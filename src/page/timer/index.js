@@ -46,9 +46,11 @@ const Timer = () => {
 		setEditName(false);
 	};
 	useEffect(() => {
-		set(ref(db, `devices/TIMER_${timerData.id}/data`), {
-			...timerData,
-		});
+		if (timerData.id !== undefined)
+			set(ref(db, `devices/TIMER_${timerData.id}/data`), {
+				...timerData,
+			});
+
 		// eslint-disable-next-line
 	}, [timerData.name]);
 	const handleOTChange = (e) => {

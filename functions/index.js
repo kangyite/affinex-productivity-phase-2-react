@@ -39,3 +39,26 @@ exports.scheduledDeleteLoggedData = functions.pubsub
 			}
 		);
 	});
+
+exports.scheduledCheckOnlineStatus = functions.pubsub
+	.schedule("every 5 minutes")
+	.onRun(async (context) => {
+		let ref = db.ref("devices");
+		let rtdbUpdates = {};
+		ref.on(
+			"value",
+			function (snapshot) {
+				let snapshotData = snapshot.val();
+				let currentTime = new Date().getTime();
+				for (let sid in snapshotData) {
+					let unix = snapshotData[sid].data.lastupdate;
+					let onlineStatus = currentTime - unix * 1000 < 5 * 60 * 1000;
+					rtdbUpdates[`${sid}/data/online`] = onlineStatus;
+				}
+				return db.ref("devices").update(rtdbUpdates);
+			},
+			function (error) {
+				console.log("Error: " + error.code);
+			}
+		);
+	});

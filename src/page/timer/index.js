@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import {} from "./style.css";
 import { db } from "../../firebase";
-import { onValue, ref, set } from "firebase/database";
+import { onValue, ref, set, update } from "firebase/database";
 
 import Editable from "../../components/Editable";
 import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
 import Switch from "@mui/material/Switch";
@@ -35,6 +36,10 @@ const Timer = () => {
 	const nameRef = useRef("");
 	const handleClickEditName = () => {
 		setEditName(true);
+	};
+	const [open, setOpen] = React.useState(false);
+	const handleOpenSnack = () => {
+		setOpen(true);
 	};
 
 	const handleClose = () => {
@@ -86,7 +91,7 @@ const Timer = () => {
 		if (reason === "clickaway") {
 			return;
 		}
-
+		setOpen(false);
 		setOpenSnack(false);
 	};
 	useEffect(() => {
@@ -115,6 +120,7 @@ const Timer = () => {
 		<div className="page">
 			<div className={"page_title_container"}>
 				<h1>{timerData.name ? timerData.name : `TIMER_${timerData.id}`}</h1>
+
 				<div className="subtext">TIMER_{timerData.id}</div>
 				<Button variant="outlined" onClick={handleClickEditName}>
 					Edit Name
@@ -262,22 +268,51 @@ const Timer = () => {
 						? "Kindly press the Update button for updating database."
 						: ""}
 				</p>
-				<Button variant="contained" onClick={handleUpdate}>
-					Update
-				</Button>
-				<Snackbar
-					open={openSnack}
-					autoHideDuration={5000}
-					onClose={handleCloseSnack}
-				>
-					<Alert
+				<Stack direction="row" spacing={2}>
+					<Button variant="contained" onClick={handleUpdate}>
+						Update
+					</Button>
+					<Snackbar
+						open={openSnack}
+						autoHideDuration={5000}
 						onClose={handleCloseSnack}
-						severity="success"
-						sx={{ width: "100%" }}
 					>
-						Updated to Firebase!
-					</Alert>
-				</Snackbar>
+						<Alert
+							onClose={handleCloseSnack}
+							severity="success"
+							sx={{ width: "100%" }}
+						>
+							Updated to Firebase!
+						</Alert>
+					</Snackbar>
+					<Button
+						variant="contained"
+						style={{ width: "150px", fontSize: "90%" }}
+						color="success"
+						onClick={() => {
+							update(ref(db, `/devices/TIMER_${timerData.id}/data`), {
+								forceupdate: true,
+							});
+							handleOpenSnack();
+						}}
+					>
+						Get Live Data
+					</Button>
+					<Snackbar
+						open={open}
+						autoHideDuration={6000}
+						onClose={handleCloseSnack}
+					>
+						<Alert
+							onClose={handleCloseSnack}
+							severity="success"
+							sx={{ width: "100%" }}
+						>
+							Updating...
+						</Alert>
+					</Snackbar>
+				</Stack>
+
 				<p>Data will be updated once a minute</p>
 				<br></br>
 				<p>

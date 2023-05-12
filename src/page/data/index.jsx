@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {} from "./style.css";
 import { db } from "../../firebase";
-import { onValue, ref } from "firebase/database";
+import { onValue, ref, update } from "firebase/database";
 
 import Stack from "@mui/material/Stack";
 import { Chart } from "react-google-charts";
 import InputLabel from "@mui/material/InputLabel";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
@@ -22,7 +24,9 @@ function Data() {
 	const [date, setDate] = useState([]);
 	const [timerId, setTimerId] = React.useState("");
 	const [dateList, setDateList] = useState([]);
-
+	const Alert = React.forwardRef(function Alert(props, ref) {
+		return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+	});
 	const handleChange = (event) => {
 		setTimerId(event.target.value);
 	};
@@ -41,6 +45,18 @@ function Data() {
 				return false;
 		}
 		return true;
+	};
+	const [open, setOpen] = React.useState(false);
+	const handleOpenSnack = () => {
+		setOpen(true);
+	};
+
+	const handleCloseSnack = (event, reason) => {
+		if (reason === "clickaway") {
+			return;
+		}
+
+		setOpen(false);
 	};
 	useEffect(() => {
 		document.title = "Data Explorer";
@@ -65,7 +81,6 @@ function Data() {
 				var tempDate = [];
 				for (let d in snapshotData) {
 					tempDate.push(d.split("-"));
-					console.log(123);
 				}
 				setDateList(tempDate);
 			}
@@ -79,9 +94,14 @@ function Data() {
 				const snapshotData = snapshot.val();
 				timerData = snapshotData;
 				let graphData = [["Time", "Target", "Actual"]];
+
 				for (let unix in timerData) {
+					let _date = new Date(unix * 1000);
+					if (timerData[unix].target === 0 && timerData[unix].actual === 0)
+						graphData = [["Time", "Target", "Actual"]];
 					graphData.push([
-						new Date(unix * 1000),
+						// String(_date.getHours()) + String(_date.getMinutes()),
+						_date.toTimeString().substring(0, 5),
 						timerData[unix].target,
 						timerData[unix].actual,
 					]);
@@ -134,36 +154,72 @@ function Data() {
 						<>
 							<Chart
 								chartType="Line"
-								width="1000px"
-								height="400px"
 								data={graphData}
-							/>
-							<Button
-								variant="contained"
-								endIcon={<DownloadIcon />}
-								style={{ width: "150px", fontSize: "90%" }}
-								onClick={() => {
-									const fileName = `Affinex Productivity Timer Phase 2 ${
-										date.$D
-									}-${date.$M + 1}-${date.$y} ${timerId}`;
-									const options = {
-										fieldSeparator: ",",
-										quoteStrings: '"',
-										decimalSeparator: ".",
-										showLabels: true,
-										showTitle: true,
-										title: fileName,
-										filename: fileName,
-										useTextFile: false,
-										useBom: true,
-									};
-
-									const csvExporter = new ExportToCsv(options);
-									csvExporter.generateCsv(csvData);
+								options={{
+									width: 1000,
+									height: 600,
+									chart: {
+										title: "Plan",
+									},
+									hAxis: {
+										minValue: "12:00",
+									},
 								}}
-							>
-								Export CSV
-							</Button>
+							/>
+							<Stack direction="row" spacing={2}>
+								<Button
+									variant="contained"
+									endIcon={<DownloadIcon />}
+									style={{ width: "150px", fontSize: "90%" }}
+									onClick={() => {
+										const fileName = `Affinex Productivity Timer Phase 2 ${
+											date.$D
+										}-${date.$M + 1}-${date.$y} ${timerId}`;
+										const options = {
+											fieldSeparator: ",",
+											quoteStrings: '"',
+											decimalSeparator: ".",
+											showLabels: true,
+											showTitle: true,
+											title: fileName,
+											filename: fileName,
+											useTextFile: false,
+											useBom: true,
+										};
+
+										const csvExporter = new ExportToCsv(options);
+										csvExporter.generateCsv(csvData);
+									}}
+								>
+									Export CSV
+								</Button>
+								<Button
+									variant="contained"
+									style={{ width: "150px", fontSize: "90%" }}
+									color="success"
+									onClick={() => {
+										update(ref(db, `/devices/${timerId}/data`), {
+											forceupdate: true,
+										});
+										handleOpenSnack();
+									}}
+								>
+									Get Live Data
+								</Button>
+								<Snackbar
+									open={open}
+									autoHideDuration={6000}
+									onClose={handleCloseSnack}
+								>
+									<Alert
+										onClose={handleCloseSnack}
+										severity="success"
+										sx={{ width: "100%" }}
+									>
+										Updating...
+									</Alert>
+								</Snackbar>
+							</Stack>
 						</>
 					)}
 				</div>

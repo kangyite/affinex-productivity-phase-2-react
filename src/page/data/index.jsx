@@ -10,6 +10,8 @@ import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 import Select from "@mui/material/Select";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -58,6 +60,11 @@ function Data() {
 
 		setOpen(false);
 	};
+	const [checked, setChecked] = React.useState(false);
+
+	const handleChangeChecked = (event) => {
+		setChecked(event.target.checked);
+	};
 	useEffect(() => {
 		document.title = "Data Explorer";
 		const query = ref(db, `devices`);
@@ -97,7 +104,11 @@ function Data() {
 
 				for (let unix in timerData) {
 					let _date = new Date(unix * 1000);
-					if (timerData[unix].target === 0 && timerData[unix].actual === 0)
+					if (
+						timerData[unix].target === 0 &&
+						timerData[unix].actual === 0 &&
+						!checked
+					)
 						graphData = [["Time", "Target", "Actual"]];
 					graphData.push([
 						// String(_date.getHours()) + String(_date.getMinutes()),
@@ -107,14 +118,10 @@ function Data() {
 					]);
 				}
 				setGraphData(graphData);
-				let csvData = [["Unix", "Target", "Actual"]];
-				for (let unix in timerData) {
-					csvData.push([unix, timerData[unix].target, timerData[unix].actual]);
-				}
-				setcsvData(csvData);
+				setcsvData(graphData);
 			} else setGraphData([]);
 		});
-	}, [timerId, date]);
+	}, [timerId, date, checked]);
 	return (
 		<div className="page">
 			<Stack spacing={2}>
@@ -145,6 +152,16 @@ function Data() {
 							onChange={(newValue) => setDate(newValue)}
 						/>
 					</LocalizationProvider>
+					<FormControlLabel
+						control={
+							<Checkbox
+								size="medium"
+								checked={checked}
+								onChange={handleChangeChecked}
+							/>
+						}
+						label="Show data before reset"
+					/>
 				</Stack>
 
 				<div className="page">
@@ -172,7 +189,7 @@ function Data() {
 									endIcon={<DownloadIcon />}
 									style={{ width: "150px", fontSize: "90%" }}
 									onClick={() => {
-										const fileName = `Affinex Productivity Timer Phase 2 ${
+										const fileName = `Affinex Productivity Timer Phase 2 - ${
 											date.$D
 										}-${date.$M + 1}-${date.$y} ${timerId}`;
 										const options = {

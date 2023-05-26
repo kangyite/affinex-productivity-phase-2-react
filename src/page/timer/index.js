@@ -108,6 +108,7 @@ const Timer = () => {
 			headerName: "Data",
 			width: 150,
 			sortable: false,
+			renderHeader: () => <strong>{"Data"}</strong>,
 		},
 		{
 			field: "value",
@@ -115,6 +116,7 @@ const Timer = () => {
 			width: 400,
 			sortable: false,
 			editable: true,
+			renderHeader: () => <strong>{"Value"}</strong>,
 			valueGetter: (params) => {
 				if (params.row.data !== "enable_ot") {
 					return params.value;

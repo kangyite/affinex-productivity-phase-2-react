@@ -104,11 +104,7 @@ function Data() {
 
 				for (let unix in timerData) {
 					let _date = new Date(unix * 1000);
-					if (
-						timerData[unix].target === 0 &&
-						timerData[unix].actual === 0 &&
-						!checked
-					)
+					if (timerData[unix].actual === 0 && !checked)
 						graphData = [["Time", "Target", "Actual"]];
 					graphData.push([
 						// String(_date.getHours()) + String(_date.getMinutes()),
@@ -117,6 +113,7 @@ function Data() {
 						timerData[unix].actual,
 					]);
 				}
+				console.log(graphData);
 				setGraphData(graphData);
 				setcsvData(graphData);
 			} else setGraphData([]);
@@ -177,9 +174,6 @@ function Data() {
 									height: 600,
 									chart: {
 										title: "Plan",
-									},
-									hAxis: {
-										minValue: "12:00",
 									},
 								}}
 							/>

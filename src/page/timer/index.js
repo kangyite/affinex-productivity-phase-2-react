@@ -13,7 +13,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import { DataGrid } from "@mui/x-data-grid";
-let changed = false;
+
 const Alert = React.forwardRef(function Alert(props, ref) {
 	return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -35,7 +35,6 @@ const useFakeMutation = () => {
 };
 
 const Timer = () => {
-	const [openSnack, setOpenSnack] = React.useState(false);
 	const [timerData, setTimerData] = useState({
 		actual: 0,
 		timer_set: 0,
@@ -73,25 +72,12 @@ const Timer = () => {
 
 		// eslint-disable-next-line
 	}, [timerData.name]);
-	const handleUpdate = () => {
-		set(ref(db, `devices/TIMER_${timerData.id}/data`), {
-			...timerData,
-		})
-			.then(() => {
-				setOpenSnack(true);
-			})
-			.catch((error) => {
-				// The write failed...
-			});
-		changed = false;
-	};
 
 	const handleCloseSnack = (event, reason) => {
 		if (reason === "clickaway") {
 			return;
 		}
 		setOpen(false);
-		setOpenSnack(false);
 	};
 	useEffect(() => {
 		const path = window.location.pathname;
@@ -117,13 +103,24 @@ const Timer = () => {
 	}, []);
 
 	const dataCol = [
-		{ field: "data_name", headerName: "Data", width: 150, sortable: false },
+		{
+			field: "data_name",
+			headerName: "Data",
+			width: 150,
+			sortable: false,
+		},
 		{
 			field: "value",
 			headerName: "Value",
 			width: 400,
 			sortable: false,
 			editable: true,
+			valueGetter: (params) => {
+				if (params.row.data !== "enable_ot") {
+					return params.value;
+				}
+				return params.value ? "Yes" : "No";
+			},
 		},
 	];
 	const dataRow = [
@@ -133,7 +130,7 @@ const Timer = () => {
 		{ id: 3, data: "actual", data_name: "Actual", value: timerData.actual },
 		{ id: 4, data: "working_time", data_name: "Working Time", value: timerData.working_time }, //prettier-ignore
 		{ id: 5, data: "ot_time", data_name: "OT Time", value: timerData.ot_time }, //prettier-ignore
-		{ id: 6, data: "enable_ot", data_name: "Enable OT", value: timerData.enable_ot }, //prettier-ignore
+		{ id: 6, data: "enable_ot", data_name: "Enable OT", value: timerData.enable_ot, switch:true }, //prettier-ignore
 	];
 	const mutateRow = useFakeMutation();
 
@@ -156,11 +153,11 @@ const Timer = () => {
 			} else if (data === "working_time" || data === "ot_time") {
 				for (let i = 0; i < value.length; i++) {
 					if ((i + 6) % 10 === 0)
-						if (value[i] !== "-") return Promise.reject("3Wrong format!");
+						if (value[i] !== "-") return Promise.reject("Wrong format!");
 					if ((i + 1) % 10 === 0)
-						if (value[i] !== ",") return Promise.reject("2Wrong format!");
+						if (value[i] !== ",") return Promise.reject("Wrong format!");
 				}
-				if((value.match(/,/g)||[]).length !== (value.match(/-/g)||[]).length - 1) return Promise.reject("1Wrong format!"); //prettier-ignore
+				if((value.match(/,/g)||[]).length !== (value.match(/-/g)||[]).length - 1) return Promise.reject("Wrong format!"); //prettier-ignore
 				let temp = value.split(",");
 				for (let i in temp) {
 					let fT = temp[i].split("-");
@@ -171,12 +168,28 @@ const Timer = () => {
 						return Promise.reject("Wrong format!");
 				}
 			} else if (data === "enable_ot") {
-				if (value === "true") value = true;
-				else if (value === "false") value = false;
-				else return Promise.reject("Please write true/false");
+				if (value.toLowerCase() === "yes") value = true;
+				else if (value.toLowerCase() === "no") value = false;
+				else return Promise.reject("Please write Yes/No");
 			}
-
+			update(ref(db, `/devices/TIMER_${timerData.id}/data`), {
+				[data]: value,
+			})
+				.then(() => {
+					setSnackbar({
+						children: "Data successfully saved",
+						severity: "success",
+					});
+				})
+				.catch((error) => {
+					setSnackbar({
+						children: String(error),
+						severity: "error",
+					});
+				});
 			setTimerData({ ...timerData, [data]: value });
+
+			// console.log(timerData);
 			return response;
 		},
 		[mutateRow, timerData]
@@ -215,7 +228,14 @@ const Timer = () => {
 						<Button onClick={handleSubmitName}>Submit</Button>
 					</DialogActions>
 				</Dialog>
-				<div style={{ height: "422px", width: "100%", paddingTop: "25px" }}>
+				<div
+					style={{
+						height: "422px",
+						width: "100%",
+						paddingTop: "25px",
+						paddingBottom: "25px",
+					}}
+				>
 					<DataGrid
 						rows={dataRow}
 						columns={dataCol}
@@ -253,28 +273,7 @@ const Timer = () => {
 					)}
 				</div>
 
-				<p>
-					{changed
-						? "Kindly press the Update button for updating database."
-						: ""}
-				</p>
 				<Stack direction="row" spacing={2}>
-					<Button variant="contained" onClick={handleUpdate}>
-						Update
-					</Button>
-					<Snackbar
-						open={openSnack}
-						autoHideDuration={5000}
-						onClose={handleCloseSnack}
-					>
-						<Alert
-							onClose={handleCloseSnack}
-							severity="success"
-							sx={{ width: "100%" }}
-						>
-							Updated to Firebase!
-						</Alert>
-					</Snackbar>
 					<Button
 						variant="contained"
 						style={{ width: "150px", fontSize: "90%" }}

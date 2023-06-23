@@ -23,7 +23,8 @@ const useFakeMutation = () => {
 		(obj) =>
 			new Promise((resolve, reject) => {
 				setTimeout(() => {
-					if (obj.value.length === 0) {
+					if(["projectNum","batchNum","remark1","remark2","remark3"].includes(obj.data)) resolve({...obj});
+					else if (obj.value.length === 0 && ["timer_set","plan","actual","enable_ot","ot_time","working_time","target"].includes.obj.data) {
 						reject(new Error("Error while saving, value can't be empty."));
 					} else {
 						resolve({ ...obj });
@@ -47,9 +48,13 @@ const Timer = () => {
 		working_time: "",
 	});
 	const [editName, setEditName] = React.useState(false);
+	const [reset, setReset] = React.useState(false);
 	const nameRef = useRef("");
 	const handleClickEditName = () => {
 		setEditName(true);
+	};
+	const handleClickReset = () => {
+		setReset(true);
 	};
 	const [open, setOpen] = React.useState(false);
 	const handleOpenSnack = () => {
@@ -58,11 +63,17 @@ const Timer = () => {
 
 	const handleClose = () => {
 		setEditName(false);
+		setReset(false);
 	};
 	const handleSubmitName = () => {
 		setTimerData({ ...timerData, name: nameRef.current.value });
 
 		setEditName(false);
+	};
+	const handleReset = () => {
+		setTimerData({ ...timerData, projectNum: "", batchNum:"", remark1:"", remark2:"",remark3:""});
+		
+		setReset(false);
 	};
 	useEffect(() => {
 		if (timerData.id !== undefined)
@@ -71,7 +82,7 @@ const Timer = () => {
 			});
 
 		// eslint-disable-next-line
-	}, [timerData.name]);
+	}, [timerData]);
 
 	const handleCloseSnack = (event, reason) => {
 		if (reason === "clickaway") {
@@ -134,12 +145,39 @@ const Timer = () => {
 		{ id: 5, data: "ot_time", data_name: "OT Time", value: timerData.ot_time }, //prettier-ignore
 		{ id: 6, data: "enable_ot", data_name: "Enable OT", value: timerData.enable_ot, switch:true }, //prettier-ignore
 	];
+	
+	const configCol = [
+		{
+			field: "config",
+			headerName: "Config",
+			width: 150,
+			sortable: false,
+			renderHeader: () => <strong>{"Config"}</strong>,
+		},
+		{
+			field: "value",
+			headerName: "Value",
+			width: 400,
+			sortable: false,
+			editable: true,
+			renderHeader: () => <strong>{"Value"}</strong>,
+		},
+	];
+	const configRow = [
+		{ id: 0, data: "projectNum", config: "Project No.", value: timerData.projectNum||" "}, //prettier-ignore
+		{ id: 1, data: "batchNum", config: "Batch No.", value: timerData.batchNum||"" },
+		{ id: 2, data: "remark1", config: "Remark 1", value: timerData.remark1||" " },
+		{ id: 3, data: "remark2", config: "Remark 2", value: timerData.remark2||" " },
+		{ id: 4, data: "remark3", config: "Remark 3", value: timerData.remark3||" " }, //prettier-ignore
+	];
+	
 	const mutateRow = useFakeMutation();
 
 	const processRowUpdate = React.useCallback(
 		async (newRow) => {
 			// Make the HTTP request to save in the backend
 			const response = await mutateRow(newRow);
+			console.log(response);
 			let data = String(response.data);
 			let value = response.value;
 			if (
@@ -174,6 +212,7 @@ const Timer = () => {
 				else if (value.toLowerCase() === "no") value = false;
 				else return Promise.reject("Please write Yes/No");
 			}
+			
 			update(ref(db, `/devices/TIMER_${timerData.id}/data`), {
 				[data]: value,
 			})
@@ -193,7 +232,7 @@ const Timer = () => {
 
 			// console.log(timerData);
 			return response;
-		},
+		}, 	 
 		[mutateRow, timerData]
 	);
 	const handleProcessRowUpdateError = React.useCallback((error) => {
@@ -208,6 +247,7 @@ const Timer = () => {
 				<h1>{timerData.name ? timerData.name : `TIMER_${timerData.id}`}</h1>
 
 				<div className="subtext">TIMER_{timerData.id}</div>
+				<Stack direction="row" spacing = {60}>
 				<Button variant="outlined" onClick={handleClickEditName}>
 					Edit Name
 				</Button>
@@ -230,6 +270,18 @@ const Timer = () => {
 						<Button onClick={handleSubmitName}>Submit</Button>
 					</DialogActions>
 				</Dialog>
+				<Button variant="outlined" onClick={handleClickReset}>
+					Reset Config
+				</Button>
+				<Dialog open={reset} onClose={handleClose}>
+					<DialogTitle>Are you sure to reset config?</DialogTitle>
+					<DialogActions>
+						<Button onClick={handleClose}>No</Button>
+						<Button onClick={handleReset}>Yes</Button>
+					</DialogActions>
+				</Dialog>
+				</Stack>
+				
 				<div
 					style={{
 						height: "422px",
@@ -238,31 +290,53 @@ const Timer = () => {
 						paddingBottom: "25px",
 					}}
 				>
-					<DataGrid
-						rows={dataRow}
-						columns={dataCol}
-						initialState={{
-							pagination: {
-								paginationModel: {
-									pageSize: 10,
+					<Stack direction="row" spacing={2}>
+						<DataGrid
+							rows={dataRow}
+							columns={dataCol}
+							initialState={{
+								pagination: {
+									paginationModel: {
+										pageSize: 20,
+									},
+									sorting: {
+										sortModel: [{ field: "id", sort: "asc" }],
+									},
 								},
-								sorting: {
-									sortModel: [{ field: "id", sort: "asc" }],
+							}}
+							disableRowSelectionOnClick
+							disableColumnMenu
+							hideFooter
+							hideFooterSelectedRowCount
+							isCellEditable={(params) =>
+								!["actual", "target"].includes(params.row.data)
+							}
+							processRowUpdate={processRowUpdate}
+							onProcessRowUpdateError={handleProcessRowUpdateError}
+						/>
+							<DataGrid
+							rows={configRow}
+							columns={configCol}
+							initialState={{
+								pagination: {
+									paginationModel: {
+										pageSize: 20,
+									},
+									sorting: {
+										sortModel: [{ field: "id", sort: "asc" }],
+									},
 								},
-							},
-						}}
-						pageSizeOptions={[1, 2]}
-						disableRowSelectionOnClick
-						disableColumnMenu
-						autoPageSize
-						hideFooter
-						hideFooterSelectedRowCount
-						isCellEditable={(params) =>
-							!["actual", "target"].includes(params.row.data)
-						}
-						processRowUpdate={processRowUpdate}
-						onProcessRowUpdateError={handleProcessRowUpdateError}
-					/>
+							}}
+							disableRowSelectionOnClick
+							disableColumnMenu
+							hideFooter
+							hideFooterSelectedRowCount
+							
+							processRowUpdate={processRowUpdate}
+							onProcessRowUpdateError={handleProcessRowUpdateError}
+						/> 
+					</Stack>
+					
 					{!!snackbar && (
 						<Snackbar
 							open

@@ -13,8 +13,8 @@ import NavBar from "./components/navbar";
 import Data from "./page/data";
 const App = () => {
 	return (
-		<div className="rowC">
-			<div className="navBar">
+		<div style={{display: "flex",}}>
+			<div className="navBar" >
 				<NavBar />
 			</div>
 			<div>

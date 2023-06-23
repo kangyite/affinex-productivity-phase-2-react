@@ -6,6 +6,7 @@ function NavBar() {
 	const navigate = useNavigate();
 	return (
 		<SideNav
+		style={{background:"#1769aa",}}
 			onSelect={(selected) => {
 				navigate(selected);
 			}}

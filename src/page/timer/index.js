@@ -13,6 +13,9 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import { DataGrid } from "@mui/x-data-grid";
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
 
 const Alert = React.forwardRef(function Alert(props, ref) {
 	return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -23,7 +26,7 @@ const useFakeMutation = () => {
 		(obj) =>
 			new Promise((resolve, reject) => {
 				setTimeout(() => {
-					if(["projectNum","batchNum","remark1","remark2","remark3"].includes(obj.data)) resolve({...obj});
+					if(["projectNum","batchNum","pcbModel","remark1","remark2","remark3","remark4"].includes(obj.data)) resolve({...obj});
 					else if (obj.value.length === 0 && ["timer_set","plan","actual","enable_ot","ot_time","working_time","target"].includes.obj.data) {
 						reject(new Error("Error while saving, value can't be empty."));
 					} else {
@@ -49,6 +52,7 @@ const Timer = () => {
 	});
 	const [editName, setEditName] = React.useState(false);
 	const [reset, setReset] = React.useState(false);
+	
 	const nameRef = useRef("");
 	const handleClickEditName = () => {
 		setEditName(true);
@@ -71,10 +75,14 @@ const Timer = () => {
 		setEditName(false);
 	};
 	const handleReset = () => {
-		setTimerData({ ...timerData, projectNum: "", batchNum:"", remark1:"", remark2:"",remark3:""});
+		setTimerData({ ...timerData, projectNum: "", batchNum:"",pcbModel:"", remark1:"", remark2:"",remark3:"",process:""});
 		
 		setReset(false);
 	};
+	const handleProcessChange = (event) => {
+		setTimerData({...timerData, process: event.target.value});
+	  };
+
 	useEffect(() => {
 		if (timerData.id !== undefined)
 			set(ref(db, `devices/TIMER_${timerData.id}/data`), {
@@ -161,14 +169,43 @@ const Timer = () => {
 			sortable: false,
 			editable: true,
 			renderHeader: () => <strong>{"Value"}</strong>,
+			renderCell: (params) => (
+				<div >
+				{params.row.data==="process"?
+				(<FormControl fullWidth variant="standard" >
+					<Select
+					style={{"font-size":14}}
+					labelId="demo-simple-select-label"
+					id="demo-simple-select"
+					value={timerData.process||""}
+					label="Age"
+					displayEmpty
+					disableUnderline
+					defaultValue={{label:"Select",value:"asd"}}
+					// defaultInputValue="defaultInputValue"
+					onChange={handleProcessChange}
+					>
+						<MenuItem value={"Soldering"}>Soldering</MenuItem>
+						<MenuItem value={"Cleaning"}>Cleaning</MenuItem>
+						<MenuItem value={"Inspecting"}>Inspecting</MenuItem>
+						<MenuItem value={"QC"}>QC</MenuItem>
+						<MenuItem value={"Checking"}>Checking</MenuItem>
+						<MenuItem value={"Assembling"}>Assembling</MenuItem>
+					</Select>
+				</FormControl>) : params.row.value
+				}</div>
+			)
 		},
 	];
 	const configRow = [
 		{ id: 0, data: "projectNum", config: "Project No.", value: timerData.projectNum||" "}, //prettier-ignore
-		{ id: 1, data: "batchNum", config: "Batch No.", value: timerData.batchNum||"" },
-		{ id: 2, data: "remark1", config: "Remark 1", value: timerData.remark1||" " },
-		{ id: 3, data: "remark2", config: "Remark 2", value: timerData.remark2||" " },
-		{ id: 4, data: "remark3", config: "Remark 3", value: timerData.remark3||" " }, //prettier-ignore
+		{ id: 1, data: "batchNum", config: "Batch No.", value: timerData.batchNum||" " },
+		{ id: 2, data: "process", config: "Process", value: timerData.process||" "},
+		{ id: 3, data: "pcbModel", config: "PCB Model", value: timerData.pcbModel||" "},
+		{ id: 4, data: "remark1", config: "Remark 1", value: timerData.remark1||" " },
+		{ id: 5, data: "remark2", config: "Remark 2", value: timerData.remark2||" " },
+		{ id: 6, data: "remark3", config: "Remark 3", value: timerData.remark3||" " }, //prettier-ignore
+		{ id: 7, data: "remark4", config: "Remark 4", value: timerData.remark4||" " }, //prettier-ignore
 	];
 	
 	const mutateRow = useFakeMutation();
